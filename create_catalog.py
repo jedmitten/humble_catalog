@@ -11,6 +11,11 @@ from lxml import html, etree
 
 log = logging.getLogger('create_catalog')
 
+if sys.version_info.major == 2:
+    FileNotFoundError = IOError
+
+TYPE_FN = 'publishers.json'
+
 
 def scrub_unicode(text):
     text = text.replace(u'â€™', u"'")
@@ -25,46 +30,48 @@ def make_list(o_xml):
     return ret
 
 
+def get_publishers(file=TYPE_FN):
+    types = dict()
+    try:
+        with open(file) as f:
+            types = json.load(f)  # type: dict
+    except (IOError, FileNotFoundError):
+        log.error('Could not locate [{}] to read publisher info'.format(file))
+    except ValueError:
+        log.error('[{}] appears to be invalid JSON. See repo for expected format'.format(file))
+    return types
+
+
 def normalize_data(node_list):
     l = []
+    publisher_info = get_publishers(file=TYPE_FN)
     for el in node_list:
         title = el.find('.//h2').text
         publisher = el.find('.//p').text
 
         title = scrub_unicode(title)
-        title_type = assign_type(publisher)
+        title_type = assign_type(publisher, pub_info_dict=publisher_info)
 
         d = OrderedDict({'title': title, 'type': title_type})
         l.append(d)
     return l
 
 
-TYPE_FN = 'publishers.json'
-def assign_type(publisher, src_file=TYPE_FN):
+def assign_type(publisher, pub_info_dict):
     log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
-    if not os.path.isfile(src_file):
-        log.error('Could not locate [{}] to read publisher info'.format(src_file))
-        return ''
     assignment = ''
-    try:
-        with open(src_file) as f:
-            types = json.load(f)  # type: dict
-        for title_type in types.values():
-            publishers = title_type.get('publishers')
-            if not isinstance(publishers, list):
-                return ''
-            if publisher.lower() in [p.lower() for p in publishers]:
-                display = title_type.get('display_name')
-                log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
-                assignment = display
-                break
-        if not assign_type:
-            log.debug('Unassigned type for publisher: [{}]'.format(publisher))
-    except IOError:
-        log.error('Could not locate [{}] to read publisher info'.format(src_file))
-    except ValueError:
-        log.error('[{}] appears to be invalid JSON. See repo for expected format'.format(src_file))
-        
+    for category in pub_info_dict.values():
+        publishers = category.get('publishers')
+        if not isinstance(publishers, list):
+            return ''
+        if publisher.lower() in [p.lower() for p in publishers]:
+            display = category.get('display_name')
+            log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
+            assignment = display
+            break
+    if not assign_type:
+        log.debug('Unassigned type for publisher: [{}]'.format(publisher))
+
     return assignment
 
 
