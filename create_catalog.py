@@ -47,7 +47,7 @@ def assign_type(publisher, src_file=TYPE_FN):
     if not os.path.isfile(src_file):
         log.error('Could not locate [{}] to read publisher info'.format(src_file))
         return ''
-    assigned_type = ''
+    assignment = ''
     try:
         with open(src_file) as f:
             types = json.load(f)  # type: dict
@@ -58,14 +58,16 @@ def assign_type(publisher, src_file=TYPE_FN):
             if publisher.lower() in [p.lower() for p in publishers]:
                 display = title_type.get('display_name')
                 log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
-                assigned_type = display
+                assignment = display
                 break
+        if not assign_type:
+            log.debug('Unassigned type for publisher: [{}]'.format(publisher))
     except IOError:
         log.error('Could not locate [{}] to read publisher info'.format(src_file))
     except ValueError:
         log.error('[{}] appears to be invalid JSON. See repo for expected format'.format(src_file))
         
-    return assigned_type
+    return assignment
 
 
 def get_opts():
