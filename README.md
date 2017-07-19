@@ -1,4 +1,4 @@
-# hb_library_catalog
+# HumbleBundle Library Catalog
 ## Getting started
 Humble Bundle doesn't allow library exports to share lists of your titles with your cohorts. They also don't allow a simple copy/paste from the library page, so here is how to use this tool
 1. Got to: https://www.humblebundle.com/home/library
