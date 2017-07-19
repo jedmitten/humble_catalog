@@ -1,3 +1,2 @@
-lxml==3.8.0
-pprint==0.1
-
+lxml>=3.8.0
+pprint>=0.1
