@@ -1,4 +1,4 @@
-# hb_library_catalog
+# HumbleBundle Library Catalog
 ## Getting started
 Humble Bundle doesn't allow library exports to share lists of your titles with your cohorts. They also don't allow a simple copy/paste from the library page, so here is how to use this tool
 1. Got to: https://www.humblebundle.com/home/library
@@ -22,6 +22,8 @@ optional arguments:
 ```
 
 ## Contributing
+Adding publishers to the [publishers.json](./publishers.json) file would be very helpful. Please maintain formatting in that file.
+
 1. Fork this repository to your own org
 1. Make changes to your own repository
 1. Make a pull request to this repository to have your changes reviewed and merged
