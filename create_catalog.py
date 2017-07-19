@@ -2,6 +2,7 @@ import argparse
 import csv
 import logging
 import json
+import os
 import sys
 from collections import OrderedDict
 from pprint import pprint
@@ -41,19 +42,30 @@ def normalize_data(node_list):
 
 
 TYPE_FN = 'publishers.json'
-def assign_type(publisher):
+def assign_type(publisher, src_file=TYPE_FN):
     log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
-    with open(TYPE_FN) as f:
-        types = json.load(f)  # type: dict
-    for title_type in types.values():
-        publishers = title_type.get('publishers')
-        if not isinstance(publishers, list):
-            return ''
-        if publisher.lower() in [p.lower() for p in publishers]:
-            display = title_type.get('display_name')
-            log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
-            return display
-    return ''
+    if not os.path.isfile(src_file):
+        log.error('Could not locate [{}] to read publisher info'.format(src_file))
+        return ''
+    assigned_type = ''
+    try:
+        with open(src_file) as f:
+            types = json.load(f)  # type: dict
+        for title_type in types.values():
+            publishers = title_type.get('publishers')
+            if not isinstance(publishers, list):
+                return ''
+            if publisher.lower() in [p.lower() for p in publishers]:
+                display = title_type.get('display_name')
+                log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
+                assigned_type = display
+                break
+    except IOError:
+        log.error('Could not locate [{}] to read publisher info'.format(src_file))
+    except ValueError:
+        log.error('[{}] appears to be invalid JSON. See repo for expected format'.format(src_file))
+        
+    return assigned_type
 
 
 def get_opts():
