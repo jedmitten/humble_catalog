@@ -2,6 +2,7 @@ import argparse
 import csv
 import logging
 import json
+import os
 import sys
 from collections import OrderedDict
 from pprint import pprint
@@ -12,10 +13,8 @@ log = logging.getLogger('create_catalog')
 
 
 def scrub_unicode(text):
-    log.debug('Scrubbing string: [{}]'.format(text))
     text = text.replace(u'â€™', u"'")
     text = text.replace(u'â\x80\x99', u"'")
-    log.debug('Scrubbed to: [{}]'.format(text))
 
     return text
 
@@ -41,19 +40,32 @@ def normalize_data(node_list):
 
 
 TYPE_FN = 'publishers.json'
-def assign_type(publisher):
+def assign_type(publisher, src_file=TYPE_FN):
     log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
-    with open(TYPE_FN) as f:
-        types = json.load(f)  # type: dict
-    for title_type in types.values():
-        publishers = title_type.get('publishers')
-        if not isinstance(publishers, list):
-            return ''
-        if publisher.lower() in [p.lower() for p in publishers]:
-            display = title_type.get('display_name')
-            log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
-            return display
-    return ''
+    if not os.path.isfile(src_file):
+        log.error('Could not locate [{}] to read publisher info'.format(src_file))
+        return ''
+    assignment = ''
+    try:
+        with open(src_file) as f:
+            types = json.load(f)  # type: dict
+        for title_type in types.values():
+            publishers = title_type.get('publishers')
+            if not isinstance(publishers, list):
+                return ''
+            if publisher.lower() in [p.lower() for p in publishers]:
+                display = title_type.get('display_name')
+                log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
+                assignment = display
+                break
+        if not assign_type:
+            log.debug('Unassigned type for publisher: [{}]'.format(publisher))
+    except IOError:
+        log.error('Could not locate [{}] to read publisher info'.format(src_file))
+    except ValueError:
+        log.error('[{}] appears to be invalid JSON. See repo for expected format'.format(src_file))
+        
+    return assignment
 
 
 def get_opts():
@@ -63,14 +75,27 @@ def get_opts():
     return parser.parse_args()
 
 
+def order_fieldnames(fieldnames):
+    TITLE = 'title'
+    if not isinstance(fieldnames, list):
+        return fieldnames
+    log.debug('Forcing {} to be first column'.format(TITLE))
+    if TITLE != fieldnames[0] and TITLE in fieldnames:
+        del fieldnames[fieldnames.index(TITLE)]
+        fieldnames = [TITLE] + fieldnames
+    return fieldnames
+
+
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
-    writer = csv.DictWriter(sys.stdout, fieldnames=items[0].keys(), delimiter=delim)
+    fieldnames = order_fieldnames(list(items[0].keys()))
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim)
     writer.writeheader()
     writer.writerows(items)
 
 
 def _main(opts):
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
     if not opts.verbose:
         logging.disable(logging.DEBUG)
     else:
@@ -80,8 +105,11 @@ def _main(opts):
     with open(opts.input_file) as f:
         root = html.parse(f)
     node_list = make_list(root)
+    log.debug('Normalizing data...')
     title_info = normalize_data(node_list=node_list)
+    log.debug('Printing data...')
     print_list(title_info)
+    log.info('All done. Bye!')
 
 
 if __name__ == '__main__':
