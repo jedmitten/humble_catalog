@@ -20,6 +20,12 @@ def scrub_unicode(text):
 
 
 def make_list(o_xml):
+    ret = o_xml.xpath('//./div[@class="selector-content"]')
+    log.debug('Found {} titles in XML'.format(len(ret)))
+    return ret
+
+
+def normalize_data(node_list):
     l = []
     for el in o_xml.xpath('//./div[@class="selector-content"]/div/h2'):
         text = el.text
@@ -44,12 +50,25 @@ def get_opts():
     return parser.parse_args()
 
 
+def print_list(items, delim='\t'):
+    log.debug('Delimiter set to [{}]'.format(delim))
+    writer = csv.DictWriter(sys.stdout, fieldnames=items[0].keys(), delimiter=delim)
+    writer.writeheader()
+    writer.writerows(items)
+
+
 def _main(opts):
+    if not opts.verbose:
+        logging.disable(logging.DEBUG)
+    else:
+        log.debug('Verbose output enabled')
+
+    log.info('Opening [{}] to looked for saved library HTML'.format(opts.input_file))
     with open(opts.input_file) as f:
         root = html.parse(f)
-    items = make_list(root)
-    for i in items:
-        print(i)
+    node_list = make_list(root)
+    title_info = normalize_data(node_list=node_list)
+    print_list(title_info)
 
 
 if __name__ == '__main__':
