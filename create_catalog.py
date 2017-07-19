@@ -27,20 +27,32 @@ def make_list(o_xml):
 
 def normalize_data(node_list):
     l = []
-    for el in o_xml.xpath('//./div[@class="selector-content"]/div/h2'):
-        text = el.text
-        text = scrub_unicode(text)
-        l.append(text)
+    for el in node_list:
+        title = el.find('.//h2').text
+        publisher = el.find('.//p').text
+
+        title = scrub_unicode(title)
+        title_type = assign_type(publisher)
+
+        d = OrderedDict({'title': title, 'type': title_type})
+        l.append(d)
     return l
 
 
-def assign_type(xml_node):
-    EBOOKS = ['oreilly',
-              'no starch press',
-              'cherie priest',
-              'kamui cosplay',
-              'wiley',
-              ]
+TYPE_FN = 'publishers.json'
+def assign_type(publisher):
+    log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
+    with open(TYPE_FN) as f:
+        types = json.load(f)  # type: dict
+    for title_type in types.values():
+        publishers = title_type.get('publishers')
+        if not isinstance(publishers, list):
+            return ''
+        if publisher.lower() in [p.lower() for p in publishers]:
+            display = title_type.get('display_name')
+            log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
+            return display
+    return ''
 
 
 def get_opts():
