@@ -1,6 +1,6 @@
 {
   "ebooks": {
-    "filter_name": "eBooks",
+    "display_name": "eBooks",
     "publishers": [
       "o'reilly",
       "no starch press",
@@ -12,14 +12,14 @@
     ]
   },
   "android_apps": {
-    "filter_name": "Android Apps",
+    "display_name": "Android Apps",
     "publishers": [
       "11 bit studios",
       "inxile entertainment"
     ]
   },
   "pc_games": {
-    "filter_name": "PC Games",
+    "display_name": "PC Games",
     "publishers": [
       "electronic arts",
       "jackbox games"
