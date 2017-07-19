@@ -22,6 +22,8 @@ optional arguments:
 ```
 
 ## Contributing
+Adding publishers to the [publishers.json](./publishers.json) file would be very helpful. Please maintain formatting in that file.
+
 1. Fork this repository to your own org
 1. Make changes to your own repository
 1. Make a pull request to this repository to have your changes reviewed and merged
