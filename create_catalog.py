@@ -4,8 +4,9 @@ import logging
 import json
 import sys
 from collections import OrderedDict
-from lxml import html, etree
 from pprint import pprint
+
+from lxml import html, etree
 
 log = logging.getLogger('create_catalog')
 
