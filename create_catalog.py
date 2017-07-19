@@ -13,10 +13,8 @@ log = logging.getLogger('create_catalog')
 
 
 def scrub_unicode(text):
-    log.debug('Scrubbing string: [{}]'.format(text))
     text = text.replace(u'â€™', u"'")
     text = text.replace(u'â\x80\x99', u"'")
-    log.debug('Scrubbed to: [{}]'.format(text))
 
     return text
 
@@ -97,6 +95,7 @@ def print_list(items, delim='\t'):
 
 
 def _main(opts):
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
     if not opts.verbose:
         logging.disable(logging.DEBUG)
     else:
@@ -106,8 +105,11 @@ def _main(opts):
     with open(opts.input_file) as f:
         root = html.parse(f)
     node_list = make_list(root)
+    log.debug('Normalizing data...')
     title_info = normalize_data(node_list=node_list)
+    log.debug('Printing data...')
     print_list(title_info)
+    log.info('All done. Bye!')
 
 
 if __name__ == '__main__':
