@@ -77,9 +77,21 @@ def get_opts():
     return parser.parse_args()
 
 
+def order_fieldnames(fieldnames):
+    TITLE = 'title'
+    if not isinstance(fieldnames, list):
+        return fieldnames
+    log.debug('Forcing {} to be first column'.format(TITLE))
+    if TITLE != fieldnames[0] and TITLE in fieldnames:
+        del fieldnames[fieldnames.index(TITLE)]
+        fieldnames = [TITLE] + fieldnames
+    return fieldnames
+
+
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
-    writer = csv.DictWriter(sys.stdout, fieldnames=items[0].keys(), delimiter=delim)
+    fieldnames = order_fieldnames(list(items[0].keys()))
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim)
     writer.writeheader()
     writer.writerows(items)
 
