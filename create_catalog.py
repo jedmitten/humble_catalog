@@ -1,37 +1,59 @@
 import argparse
-from lxml import html, etree
+import csv
+import logging
+import json
+import sys
+from collections import OrderedDict
 from pprint import pprint
 
+from lxml import html, etree
 
-def get_titles(fn):
-    with open(fn) as f:
-        root = html.parse(f)
-    return root.findall('//./div/@class="text-holder"')
+log = logging.getLogger('create_catalog')
 
 
 def scrub_unicode(text):
+    log.debug('Scrubbing string: [{}]'.format(text))
     text = text.replace(u'â€™', u"'")
     text = text.replace(u'â\x80\x99', u"'")
+    log.debug('Scrubbed to: [{}]'.format(text))
 
     return text
 
 
 def make_list(o_xml):
+    ret = o_xml.xpath('//./div[@class="selector-content"]')
+    log.debug('Found {} titles in XML'.format(len(ret)))
+    return ret
+
+
+def normalize_data(node_list):
     l = []
-    for el in o_xml.xpath('//./div[@class="selector-content"]/div/h2'):
-        text = el.text
-        text = scrub_unicode(text)
-        l.append(text)
+    for el in node_list:
+        title = el.find('.//h2').text
+        publisher = el.find('.//p').text
+
+        title = scrub_unicode(title)
+        title_type = assign_type(publisher)
+
+        d = OrderedDict({'title': title, 'type': title_type})
+        l.append(d)
     return l
 
 
-def assign_type(xml_node):
-    EBOOKS = ['oreilly',
-              'no starch press',
-              'cherie priest',
-              'kamui cosplay',
-              'wiley',
-              ]
+TYPE_FN = 'publishers.json'
+def assign_type(publisher):
+    log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
+    with open(TYPE_FN) as f:
+        types = json.load(f)  # type: dict
+    for title_type in types.values():
+        publishers = title_type.get('publishers')
+        if not isinstance(publishers, list):
+            return ''
+        if publisher.lower() in [p.lower() for p in publishers]:
+            display = title_type.get('display_name')
+            log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
+            return display
+    return ''
 
 
 def get_opts():
@@ -41,12 +63,25 @@ def get_opts():
     return parser.parse_args()
 
 
+def print_list(items, delim='\t'):
+    log.debug('Delimiter set to [{}]'.format(delim))
+    writer = csv.DictWriter(sys.stdout, fieldnames=items[0].keys(), delimiter=delim)
+    writer.writeheader()
+    writer.writerows(items)
+
+
 def _main(opts):
+    if not opts.verbose:
+        logging.disable(logging.DEBUG)
+    else:
+        log.debug('Verbose output enabled')
+
+    log.info('Opening [{}] to looked for saved library HTML'.format(opts.input_file))
     with open(opts.input_file) as f:
         root = html.parse(f)
-    items = make_list(root)
-    for i in items:
-        print(i)
+    node_list = make_list(root)
+    title_info = normalize_data(node_list=node_list)
+    print_list(title_info)
 
 
 if __name__ == '__main__':
