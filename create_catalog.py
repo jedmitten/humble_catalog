@@ -11,6 +11,11 @@ from lxml import html, etree
 
 log = logging.getLogger('create_catalog')
 
+if sys.version_info.major == 2:
+    FileNotFoundError = IOError
+
+TYPE_FN = 'publishers.json'
+
 
 def scrub_unicode(text):
     text = text.replace(u'â€™', u"'")
