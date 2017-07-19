@@ -58,7 +58,6 @@ def normalize_data(node_list):
 
 
 def assign_type(publisher, pub_info_dict):
-    log.debug('Looking for type assignment for publisher: [{}]'.format(publisher))
     assignment = ''
     for category in pub_info_dict.values():
         publishers = category.get('publishers')
@@ -69,7 +68,7 @@ def assign_type(publisher, pub_info_dict):
             log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
             assignment = display
             break
-    if not assign_type:
+    if not assignment:
         log.debug('Unassigned type for publisher: [{}]'.format(publisher))
 
     return assignment
