@@ -1,17 +1,20 @@
 import argparse
+import csv
+import logging
+import json
+import sys
+from collections import OrderedDict
 from lxml import html, etree
 from pprint import pprint
 
-
-def get_titles(fn):
-    with open(fn) as f:
-        root = html.parse(f)
-    return root.findall('//./div/@class="text-holder"')
+log = logging.getLogger('create_catalog')
 
 
 def scrub_unicode(text):
+    log.debug('Scrubbing string: [{}]'.format(text))
     text = text.replace(u'â€™', u"'")
     text = text.replace(u'â\x80\x99', u"'")
+    log.debug('Scrubbed to: [{}]'.format(text))
 
     return text
 
