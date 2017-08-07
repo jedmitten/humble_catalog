@@ -18,8 +18,12 @@ TYPE_FN = 'publishers.json'
 
 
 def scrub_unicode(text):
-    text = text.replace(u'â€™', u"'")
-    text = text.replace(u'â\x80\x99', u"'")
+    uni_single_quote = u"'"
+    bad_unicode_single_quotes = [u'â€™',
+                                 u'â\x80\x99',
+                                 ]
+    for sq in bad_unicode_single_quotes:
+        text = text.replace(sq, uni_single_quote)
 
     return text
 
