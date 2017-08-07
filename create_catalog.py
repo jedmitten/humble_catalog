@@ -54,8 +54,9 @@ def normalize_data(node_list):
         publisher = el.find('.//p').text
 
         title = scrub_unicode(title)
-        title_type = assign_type(publisher, pub_info_dict=publisher_info)
-
+        title_type = ''
+        if publisher_info:
+            title_type = assign_type(publisher, pub_info_dict=publisher_info)
         d = OrderedDict({'title': title, 'type': title_type})
         l.append(d)
     return l
@@ -67,7 +68,12 @@ def assign_type(publisher, pub_info_dict):
         publishers = category.get('publishers')
         if not isinstance(publishers, list):
             return ''
-        if publisher.lower() in [p.lower() for p in publishers]:
+        try:
+            l_pubs = [p.lower() for p in publishers]
+        except:
+            log.error('Cannot read publishers from category dict: {}'.format(category))
+            continue
+        if publisher.lower() in l_pubs:
             display = category.get('display_name')
             log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
             assignment = display
