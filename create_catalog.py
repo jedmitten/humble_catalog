@@ -1,13 +1,12 @@
+# -*- coding: utf-8 -*-
 import argparse
 import csv
 import logging
 import json
-import os
 import sys
 from collections import OrderedDict
-from pprint import pprint
 
-from lxml import html, etree
+from lxml import html
 
 log = logging.getLogger('create_catalog')
 
@@ -117,7 +116,7 @@ def _main(opts):
     else:
         log.debug('Verbose output enabled')
 
-    log.info('Opening [{}] to looked for saved library HTML'.format(opts.input_file))
+    log.info('Opening [{}] to look for saved library HTML'.format(opts.input_file))
     with open(opts.input_file) as f:
         root = html.parse(f)
     node_list = make_list(root)
