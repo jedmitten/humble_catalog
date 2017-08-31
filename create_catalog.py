@@ -143,7 +143,7 @@ def order_fieldnames(fieldnames):
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
     fieldnames = order_fieldnames(list(items[0].keys()))
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim)
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim, lineterminator='\n')
     writer.writeheader()
     writer.writerows(items)
 
