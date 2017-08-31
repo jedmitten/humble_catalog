@@ -70,7 +70,7 @@ def normalize_data(node_list, include_steam_keys=False):
             log.warning('Skipping assignment of publisher for title: [{}]'.format(title))
         else:
             title_type = assign_type(publisher, pub_info_dict=publisher_info)
-        d = OrderedDict({'title': title, 'type': title_type})
+        d = OrderedDict({'title': title, 'title_pub': publisher, 'type': title_type})
         l.append(d)
     return l
 
