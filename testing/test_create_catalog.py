@@ -9,9 +9,12 @@ import logging
 import os
 import unittest
 
+# third party
+from lxml import etree as et
+
 # Custom Code
 from utils import project_root
-from create_catalog import assign_type, get_publishers
+from create_catalog import assign_type, get_publishers, normalize_data
 
 log = logging.getLogger(__name__)
 __author__ = 'jed.mitten'
@@ -37,6 +40,11 @@ PUBS = {
         ]
     }
 }
+
+
+NODES = {1: """<div class="selector-content">\n  <div class="icon" style="background-image: url(\'https://humblebundle-a.akamaihd.net/misc/files/hashed/89250def82787faeefd936c041f8ea358ab2fcd2.png\')"/><div class="text-holder">\n    <h2 title="A Beginner&#226;&#8364;&#8482;s Guide to Making Mind Blowing Props">A Beginner&#226;&#8364;&#8482;s Guide to Making Mind Blowing Props</h2>\n    <p>Punished Props</p>\n  </div>\n  <div class="pointer"/>\n</div>\n\n""",
+         2: """<div class="selector-content">\n  <div class="icon"/><div class="text-holder">\n    <h2 title="Cogs Steam Key">Cogs Steam Key</h2>\n    <p/>\n  </div>\n  <div class="pointer"/>\n</div>\n\n""",
+         }
 
 
 class TestingBase(unittest.TestCase):
@@ -75,3 +83,15 @@ class TestPublishers(TestingBase):
         for i in inputs:
             found_type = assign_type(i, PUBS)
             self.assertEqual(expected_type, found_type)
+
+    def test_steam_keys(self):
+        L_SCRUB = [et.fromstring(NODES[1]),
+                   et.fromstring(NODES[2]),
+                   ]
+        L_NO_SCRUB = [et.fromstring(NODES[1]),
+                      et.fromstring(NODES[2]),
+                      ]
+        L = normalize_data(L_SCRUB, include_steam_keys=False)
+        self.assertEqual(len(L), 1)
+        L = normalize_data(L_NO_SCRUB, include_steam_keys=True)
+        self.assertEqual(len(L), 2)
