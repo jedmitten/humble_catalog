@@ -120,6 +120,10 @@ def _main(opts):
     with open(opts.input_file) as f:
         root = html.parse(f)
     node_list = make_list(root)
+    if not node_list:
+        log.error('There were no titles found in the file you pointed to')
+        log.error('Either the script is out of date or something else is wrong with the HTML')
+        sys.exit(1)
     log.debug('Normalizing data...')
     title_info = normalize_data(node_list=node_list)
     log.debug('Printing data...')
