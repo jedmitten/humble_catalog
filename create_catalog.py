@@ -164,7 +164,7 @@ def _main(opts):
         log.error('Either the script is out of date or something else is wrong with the HTML')
         sys.exit(1)
     log.debug('Normalizing data...')
-    title_info = normalize_data(node_list=node_list)
+    title_info = normalize_data(node_list=node_list, include_steam_keys=opts.include_steam)
     log.debug('Printing data...')
     print_list(title_info)
     log.info('All done. Bye!')
