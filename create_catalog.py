@@ -20,6 +20,7 @@ def scrub_unicode(text):
     uni_single_quote = u"'"
     bad_unicode_single_quotes = [u'â€™',
                                  u'â\x80\x99',
+                                 u'\u2019',
                                  ]
     for sq in bad_unicode_single_quotes:
         text = text.replace(sq, uni_single_quote)
