@@ -17,7 +17,10 @@
     "display_name": "Android Apps",
     "publishers": [
       "11 bit studios",
-      "inxile entertainment"
+      "inxile entertainment",
+      "Tiger Style Games",
+      "Revolution Software",
+      "Paradox Interactive"
     ]
   },
   "pc_games": {
@@ -25,7 +28,8 @@
     "publishers": [
       "electronic arts",
       "jackbox games",
-      "harebrained schemes"
+      "harebrained schemes",
+      "Paradox Interactive"
     ]
   }
 }
