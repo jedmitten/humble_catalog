@@ -14,6 +14,7 @@ if sys.version_info.major == 2:
     FileNotFoundError = IOError
 
 TYPE_FN = 'publishers.json'
+STEAM_KEY = 'steam key'
 
 
 def scrub_unicode(text):
@@ -46,7 +47,7 @@ def get_publishers(file=TYPE_FN):
     return types
 
 
-def normalize_data(node_list):
+def normalize_data(node_list, include_steam_keys=False):
     l = []
     publisher_info = get_publishers(file=TYPE_FN)
     for el in node_list:
@@ -54,6 +55,9 @@ def normalize_data(node_list):
         publisher = el.find('.//p').text
 
         title = scrub_unicode(title)
+        if STEAM_KEY in title.lower() and not include_steam_keys:
+            log.debug('Skipping steam key in library output')
+            continue
         title_type = ''
         skip_pub_assign = False
         if not publisher:
@@ -96,6 +100,8 @@ def assign_type(publisher, pub_info_dict):
 def get_opts():
     parser = argparse.ArgumentParser('Parse the saved HTML file from Humble Bundle Library')
     parser.add_argument('-i', '--input-file', required=True, help='The saved Humble Bundle Library file')
+    parser.add_argument('--include-steam', action='store_true', required=False, default=False,
+                        help='Include Steam Keys in output')
     parser.add_argument('-v', '--verbose', action='store_true', default=False)
     return parser.parse_args()
 
