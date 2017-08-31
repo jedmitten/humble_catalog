@@ -93,8 +93,31 @@ def assign_type(publisher, pub_info_dict):
             break
     if not assignment:
         log.debug('Unassigned type for publisher: [{}]'.format(publisher))
+        suggest_type(publisher)
 
     return assignment
+
+
+def suggest_type(publisher):
+    TEXT = 'text'
+    CAT = 'category'
+    GAME = 'Game'
+    BOOK = 'Book'
+    SUGGESTIONS = [
+        {TEXT: 'game', CAT: GAME},
+        {TEXT: 'book', CAT: BOOK},
+        {TEXT: 'publish', CAT: BOOK},
+        {TEXT: 'press', CAT: BOOK},
+        {TEXT: 'interactive', CAT: GAME},
+        {TEXT: 'studio', CAT: GAME},
+        {TEXT: 'software', CAT: GAME},
+    ]
+    if not publisher:
+        return
+    for SUG in SUGGESTIONS:
+        if SUG[TEXT].lower() in publisher.lower():
+            log.debug('Suggested category for publisher [{}]: [{}]'.format(publisher, SUG[CAT]))
+        break
 
 
 def get_opts():
