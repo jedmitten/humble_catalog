@@ -54,7 +54,16 @@ def normalize_data(node_list):
 
         title = scrub_unicode(title)
         title_type = ''
-        if publisher_info:
+        skip_pub_assign = False
+        if not publisher:
+            log.warning('No publisher was found for title: [{}]'.format(title))
+            skip_pub_assign = True
+        if not publisher_info:
+            log.warning('No publisher information JSON was found')
+            skip_pub_assign = True
+        if skip_pub_assign:
+            log.warning('Skipping assignment of publisher for title: [{}]'.format(title))
+        else:
             title_type = assign_type(publisher, pub_info_dict=publisher_info)
         d = OrderedDict({'title': title, 'type': title_type})
         l.append(d)
