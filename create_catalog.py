@@ -22,10 +22,13 @@ def scrub_unicode(text):
     bad_unicode_single_quotes = [u'â€™',
                                  u'â\x80\x99',
                                  u'\u2019',
+                                 u'\xae',
                                  ]
     for sq in bad_unicode_single_quotes:
-        text = text.replace(sq, uni_single_quote)
-
+        if sq in text:
+            text = text.replace(sq, uni_single_quote)
+            log.debug('SCRUB: "{}" in [{}] changed to {}'.format(
+                sq.encode('utf-8', errors='replace'), text.encode('utf-8', errors='replace'), uni_single_quote))
     return text
 
 
