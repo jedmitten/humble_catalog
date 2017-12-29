@@ -20,7 +20,11 @@
       "inxile entertainment",
       "Tiger Style Games",
       "Revolution Software",
-      "Paradox Interactive"
+      "Paradox Interactive",
+      "Lazy 8 Studios",
+      "Omni Systems",
+      "Cipher Prime Studios",
+      "Limbic"
     ]
   },
   "pc_games": {
@@ -29,7 +33,14 @@
       "electronic arts",
       "jackbox games",
       "harebrained schemes",
-      "Paradox Interactive"
+      "Paradox Interactive",
+      "Remedy Entertainment"
+    ]
+  },
+  "pc_software" :{
+    "display_name": "PC Software",
+    "publishers": [
+        "CyberLink"
     ]
   }
 }
