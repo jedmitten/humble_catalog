@@ -19,15 +19,8 @@ STEAM_KEY = 'steam key'
 
 
 def scrub_unicode(text):
-    '''
-    Process special characters used on the HTML
-    encoding from ASCII to UTF-8
-    '''
-    try:
-        return str(text)
-    except UnicodeEncodeError as uee:
-        # python 2.5 and higher needs explicit encoding to utf-8
-        return text.encode('utf-8')
+    return unicodedata.normalize('NFKD', unicode(text)).encode('ascii', 'ignore')
+
 
 def make_list(o_xml):
     ret = o_xml.xpath('//./div[@class="selector-content"]')
@@ -139,14 +132,6 @@ def order_fieldnames(fieldnames):
         fieldnames = [TITLE] + fieldnames
     return fieldnames
 
-def write_list_to_csv(items):
-    csvfile = 'library.csv'
-    with open(csvfile, 'w') as write_file:
-        fieldnames = ['title', 'title_pub', 'type']
-        writer = csv.DictWriter(write_file, fieldnames=fieldnames)
-        writer.writeheader()
-        for item in items:
-            writer.writerow(item)
 
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
@@ -155,6 +140,20 @@ def print_list(items, delim='\t'):
     writer.writeheader()
     writer.writerows(items)
 
+
+def write_list_to_csv(items):
+    '''
+    Exports rows to local CSV file.
+    :param items:
+    :return void:
+    '''
+    csvfile = 'library.csv'
+    with open(csvfile, 'w') as write_file:
+        fieldnames = ['title', 'title_pub', 'type']
+        writer = csv.DictWriter(write_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for item in items:
+            writer.writerow(item)
 
 def _main(opts):
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
