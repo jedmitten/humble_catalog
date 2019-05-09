@@ -4,7 +4,6 @@ import csv
 import logging
 import json
 import sys
-import unicodedata
 from collections import OrderedDict
 
 from lxml import html
