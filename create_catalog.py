@@ -1,13 +1,13 @@
+# -*- coding: utf-8 -*-
 import argparse
 import csv
 import logging
 import json
-import os
 import sys
+import unicodedata
 from collections import OrderedDict
-from pprint import pprint
 
-from lxml import html, etree
+from lxml import html
 
 log = logging.getLogger('create_catalog')
 
@@ -15,13 +15,11 @@ if sys.version_info.major == 2:
     FileNotFoundError = IOError
 
 TYPE_FN = 'publishers.json'
+STEAM_KEY = 'steam key'
 
 
 def scrub_unicode(text):
-    text = text.replace(u'â€™', u"'")
-    text = text.replace(u'â\x80\x99', u"'")
-
-    return text
+    return unicodedata.normalize('NFKD', unicode(text)).encode('ascii', 'ignore')
 
 
 def make_list(o_xml):
@@ -42,7 +40,7 @@ def get_publishers(file=TYPE_FN):
     return types
 
 
-def normalize_data(node_list):
+def normalize_data(node_list, include_steam_keys=False):
     l = []
     publisher_info = get_publishers(file=TYPE_FN)
     for el in node_list:
@@ -50,9 +48,22 @@ def normalize_data(node_list):
         publisher = el.find('.//p').text
 
         title = scrub_unicode(title)
-        title_type = assign_type(publisher, pub_info_dict=publisher_info)
-
-        d = OrderedDict({'title': title, 'type': title_type})
+        if STEAM_KEY in title.lower() and not include_steam_keys:
+            log.debug('Skipping steam key in library output')
+            continue
+        title_type = ''
+        skip_pub_assign = False
+        if not publisher:
+            log.warning('No publisher was found for title: [{}]'.format(title))
+            skip_pub_assign = True
+        if not publisher_info:
+            log.warning('No publisher information JSON was found')
+            skip_pub_assign = True
+        if skip_pub_assign:
+            log.warning('Skipping assignment of publisher for title: [{}]'.format(title))
+        else:
+            title_type = assign_type(publisher, pub_info_dict=publisher_info)
+        d = OrderedDict({'title': title, 'title_pub': publisher, 'type': title_type})
         l.append(d)
     return l
 
@@ -63,20 +74,50 @@ def assign_type(publisher, pub_info_dict):
         publishers = category.get('publishers')
         if not isinstance(publishers, list):
             return ''
-        if publisher.lower() in [p.lower() for p in publishers]:
+        try:
+            l_pubs = [p.lower() for p in publishers]
+        except:
+            log.error('Cannot read publishers from category dict: {}'.format(category))
+            continue
+        if publisher.lower() in l_pubs:
             display = category.get('display_name')
             log.debug('Found type assignment for [{}] => [{}]'.format(publisher, display))
             assignment = display
             break
     if not assignment:
         log.debug('Unassigned type for publisher: [{}]'.format(publisher))
+        suggest_type(publisher)
 
     return assignment
+
+
+def suggest_type(publisher):
+    TEXT = 'text'
+    CAT = 'category'
+    GAME = 'Game'
+    BOOK = 'Book'
+    SUGGESTIONS = [
+        {TEXT: 'game', CAT: GAME},
+        {TEXT: 'book', CAT: BOOK},
+        {TEXT: 'publish', CAT: BOOK},
+        {TEXT: 'press', CAT: BOOK},
+        {TEXT: 'interactive', CAT: GAME},
+        {TEXT: 'studio', CAT: GAME},
+        {TEXT: 'software', CAT: GAME},
+    ]
+    if not publisher:
+        return
+    for SUG in SUGGESTIONS:
+        if SUG[TEXT].lower() in publisher.lower():
+            log.debug('Suggested category for publisher [{}]: [{}]'.format(publisher, SUG[CAT]))
+        break
 
 
 def get_opts():
     parser = argparse.ArgumentParser('Parse the saved HTML file from Humble Bundle Library')
     parser.add_argument('-i', '--input-file', required=True, help='The saved Humble Bundle Library file')
+    parser.add_argument('--include-steam', action='store_true', required=False, default=False,
+                        help='Include Steam Keys in output')
     parser.add_argument('-v', '--verbose', action='store_true', default=False)
     return parser.parse_args()
 
@@ -95,7 +136,7 @@ def order_fieldnames(fieldnames):
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
     fieldnames = order_fieldnames(list(items[0].keys()))
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim)
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter=delim, lineterminator='\n')
     writer.writeheader()
     writer.writerows(items)
 
@@ -107,12 +148,16 @@ def _main(opts):
     else:
         log.debug('Verbose output enabled')
 
-    log.info('Opening [{}] to looked for saved library HTML'.format(opts.input_file))
+    log.info('Opening [{}] to look for saved library HTML'.format(opts.input_file))
     with open(opts.input_file) as f:
         root = html.parse(f)
     node_list = make_list(root)
+    if not node_list:
+        log.error('There were no titles found in the file you pointed to')
+        log.error('Either the script is out of date or something else is wrong with the HTML')
+        sys.exit(1)
     log.debug('Normalizing data...')
-    title_info = normalize_data(node_list=node_list)
+    title_info = normalize_data(node_list=node_list, include_steam_keys=opts.include_steam)
     log.debug('Printing data...')
     print_list(title_info)
     log.info('All done. Bye!')
