@@ -22,12 +22,14 @@ def scrub_unicode(text):
     '''
     Process special characters used on the HTML
     encoding from ASCII to UTF-8
+    Accommodate Python 2.7 and 3.4+
     '''
     try:
         return str(text)
     except UnicodeEncodeError as uee:
         # python 2.5 and higher needs explicit encoding to utf-8
         return text.encode('utf-8')
+
 
 def make_list(o_xml):
     ret = o_xml.xpath('//./div[@class="selector-content"]')
@@ -139,14 +141,6 @@ def order_fieldnames(fieldnames):
         fieldnames = [TITLE] + fieldnames
     return fieldnames
 
-def write_list_to_csv(items):
-    csvfile = 'library.csv'
-    with open(csvfile, 'w') as write_file:
-        fieldnames = ['title', 'title_pub', 'type']
-        writer = csv.DictWriter(write_file, fieldnames=fieldnames)
-        writer.writeheader()
-        for item in items:
-            writer.writerow(item)
 
 def print_list(items, delim='\t'):
     log.debug('Delimiter set to [{}]'.format(delim))
@@ -175,7 +169,6 @@ def _main(opts):
     title_info = normalize_data(node_list=node_list, include_steam_keys=opts.include_steam)
     log.debug('Printing data...')
     print_list(title_info)
-    write_list_to_csv(title_info)
     log.info('All done. Bye!')
 
 
