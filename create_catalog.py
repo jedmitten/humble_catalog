@@ -19,14 +19,17 @@ STEAM_KEY = 'steam key'
 
 def scrub_unicode(text):
     uni_single_quote = u"'"
-    bad_unicode_single_quotes = [u'â€™',
-                                 u'â\x80\x99',
-                                 u'\u2019',
-                                 u'\xae',
-                                 ]
-    for sq in bad_unicode_single_quotes:
+    conversions = {
+        u'â€™': uni_single_quote,
+        u'â\x80\x99': uni_single_quote,
+        u'\u2019': uni_single_quote,
+        u'\xae': uni_single_quote,
+        u'\u2122': '(TM)'
+    }
+
+    for sq, repl in conversions.items():
         if sq in text:
-            text = text.replace(sq, uni_single_quote)
+            text = text.replace(sq, repl)
             log.debug('SCRUB: "{}" in [{}] changed to {}'.format(
                 sq.encode('utf-8', errors='replace'), text.encode('utf-8', errors='replace'), uni_single_quote))
     return text
