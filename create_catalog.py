@@ -20,14 +20,14 @@ STEAM_KEY = 'steam key'
 
 def scrub_unicode(text):
     '''
-    Process special characters used on the HTML encoding to
-    ASCII or UTF-8
+    Process special characters used on the HTML
+    encoding from ASCII to UTF-8
     '''
     try:
-        return unicodedata.normalize('NFKD', unicode(text)).encode('ascii', 'ignore')
-    except NameError as ne:
-        print(ne)
         return str(text)
+    except UnicodeEncodeError as uee:
+        # python 2.5 and higher needs explicit encoding to utf-8
+        return text.encode('utf-8')
 
 def make_list(o_xml):
     ret = o_xml.xpath('//./div[@class="selector-content"]')
