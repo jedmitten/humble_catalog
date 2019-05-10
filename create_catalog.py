@@ -4,7 +4,6 @@ import csv
 import logging
 import json
 import sys
-import unicodedata
 from collections import OrderedDict
 
 from lxml import html
@@ -19,7 +18,16 @@ STEAM_KEY = 'steam key'
 
 
 def scrub_unicode(text):
-    return unicodedata.normalize('NFKD', unicode(text)).encode('ascii', 'ignore')
+    '''
+    Process special characters used on the HTML
+    encoding from ASCII to UTF-8
+    Accommodate Python 2.7 and 3.4+
+    '''
+    try:
+        return str(text)
+    except UnicodeEncodeError as uee:
+        # python 2.5 and higher needs explicit encoding to utf-8
+        return text.encode('utf-8')
 
 
 def make_list(o_xml):
