@@ -4,6 +4,7 @@ import csv
 import logging
 import json
 import sys
+import unicodedata
 from collections import OrderedDict
 
 from lxml import html
@@ -148,6 +149,20 @@ def print_list(items, delim='\t'):
     writer.writeheader()
     writer.writerows(items)
 
+
+def write_list_to_csv(items):
+    '''
+    Exports rows to local CSV file.
+    :param items:
+    :return void:
+    '''
+    csvfile = 'library.csv'
+    with open(csvfile, 'w') as write_file:
+        fieldnames = ['title', 'title_pub', 'type']
+        writer = csv.DictWriter(write_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for item in items:
+            writer.writerow(item)
 
 def _main(opts):
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
